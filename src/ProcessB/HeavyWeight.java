@@ -1,6 +1,8 @@
+package ProcessB;
+
 public class HeavyWeight {
 
-    private final int NUM_LIGHTWEIGHTS = 2; //HeavyWeight for Ricart & Agrawala produce 2 threads
+    private final int NUM_LIGHTWEIGHTS = 2; //ProcessB.HeavyWeight for Ricart & Agrawala produce 2 threads
     private int token;
 
     public void heavyWeightProcess(){
