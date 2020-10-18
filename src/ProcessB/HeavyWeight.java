@@ -9,6 +9,7 @@ public class HeavyWeight {
 
     public HeavyWeight(String name) {
         this.name = name;
+
         heavyWeightProcess();
     }
 
