@@ -3,9 +3,13 @@ package ProcessB;
 public class LightWeight {
 
     private int myID;
+    private String name = "";
 
-    public void lightWeightProcess(){
+    public LightWeight(String name) {
+        this.name = name;
+    }
 
+    public void lightWeightProcess () {
         myID = -1; //TODO: Mirar myID
 
         while(true){

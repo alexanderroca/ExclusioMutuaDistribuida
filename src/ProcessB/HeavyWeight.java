@@ -2,8 +2,15 @@ package ProcessB;
 
 public class HeavyWeight {
 
+    private String name;
     private final int NUM_LIGHTWEIGHTS = 2; //ProcessB.HeavyWeight for Ricart & Agrawala produce 2 threads
     private int token;
+    private LightWeight[] process;
+
+    public HeavyWeight(String name) {
+        this.name = name;
+        heavyWeightProcess();
+    }
 
     public void heavyWeightProcess(){
 
