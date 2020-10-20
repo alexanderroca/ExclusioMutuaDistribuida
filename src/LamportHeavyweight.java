@@ -1,4 +1,6 @@
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -19,7 +21,7 @@ public class LamportHeavyweight extends Thread{
     private ArrayList<Socket> lightsConMe;
 
 
-    public LamportHeavyweight(int numLightweights, boolean debug, int port, int[] lightPorts, InetAddress heavyAddress, InetAddress lightAdress){
+    public LamportHeavyweight(int numLightweights, boolean debug, int port, int[] lightPorts, InetAddress heavyAddress, InetAddress lightAddress){
 
         this.numLightweights = numLightweights;
         this.debug = debug;
@@ -27,7 +29,8 @@ public class LamportHeavyweight extends Thread{
         this.port = port;
         this.lightPorts = lightPorts;
         this.heavyAddress = heavyAddress;
-        this.lightAddress = lightAdress;
+        this.lightAddress = lightAddress;
+        lightsConMe = new ArrayList<>();
 
     }
 
@@ -37,7 +40,14 @@ public class LamportHeavyweight extends Thread{
 
         //connect to the other heavy process
         heavyConnectHeavy();
-        heavySocketServer = new HeavySocketServer(port);
+        try {
+            heavySocketServer = new HeavySocketServer(port);
+            Log.logMessage("LAMPORT: Heavy socket server created");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.logMessage("ERROR: LAMPORT: Heavy, cant create heavy socket server");
+        }
+
         invokeLightweights();
         startLamportHeavy();
 
@@ -53,11 +63,13 @@ public class LamportHeavyweight extends Thread{
 
         private int port;
         private volatile boolean serverStatus;
+        private ServerSocket serverSocket;
 
-        public HeavySocketServer(int port){
+        public HeavySocketServer(int port) throws IOException {
 
             this.port = port;
             serverStatus = true;
+            serverSocket = new ServerSocket(port);
             this.start();
         }
 
@@ -66,11 +78,21 @@ public class LamportHeavyweight extends Thread{
 
             while(serverStatus){
 
+                try {
 
+                    Socket auxSocket = serverSocket.accept();
+                    lightsConMe.add(auxSocket);
+                    Log.logMessage("LAMPORT: Heavy. Lightweight with port: " + auxSocket.toString() + " has connected to me");
+
+                } catch (IOException e) {
+                    Log.logMessage("ERROR: LAMPORT heavy. Error when accepting incoming light connection");
+                    e.printStackTrace();
+                }
 
             }
 
         }
+
 
         //Turns off the server
         public void shutDownServer(){
@@ -80,6 +102,7 @@ public class LamportHeavyweight extends Thread{
         }
 
     }
+
 
     private class HeavyListensLight extends Thread{
 
@@ -99,6 +122,7 @@ public class LamportHeavyweight extends Thread{
         }
 
     }
+
 
     public void startLamportHeavy(){
 
@@ -130,11 +154,11 @@ public class LamportHeavyweight extends Thread{
 
     private void invokeLightweights(){
 
-        System.out.println("LAMPORT: Invoking lightweights");
+        Log.logMessage("LAMPORT: Invoking lightweights");
 
         for(int i = 0; i < numLightweights; i++){
 
-            LamportLightweight instance = new LamportLightweight(lightPorts, numLightweights, lightPorts[i], heavyAddress, lightAddress);
+            LamportLightweight instance = new LamportLightweight(lightPorts, numLightweights, lightPorts[i], heavyAddress, lightAddress, port, "lamport_" + String.valueOf(i));
             lamportLightweights.add(instance);
             instance.start();
 

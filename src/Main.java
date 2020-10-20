@@ -10,7 +10,7 @@ public class Main {
         int numLamports = 3;
         int baseLamportPort = 4440;
 
-        System.out.println("Preparing heavyweight");
+        Log.logMessage("Preparing heavyweights");
         try {
 
             int[] lamportLightPorts = new int[numLamports];
