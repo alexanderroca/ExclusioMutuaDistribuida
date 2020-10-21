@@ -3,7 +3,7 @@ import Lamport.LamportHeavyweight;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public class Main {
+public class MainLamportHeavy {
 
     //HEAVY PORTS 3330, 3331
     //LIGHT PORTS 4440, 4441, 4442, 5550, 5551, 5552
@@ -12,7 +12,6 @@ public class Main {
         int numLamports = 3;
         int baseLamportPort = 4440;
 
-        //Lamport.Log.logMessage("Preparing heavyweights");
         try {
 
             int[] lamportLightPorts = new int[numLamports];

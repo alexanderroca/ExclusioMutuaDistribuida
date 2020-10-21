@@ -1,6 +1,6 @@
 package Lamport;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -48,31 +48,27 @@ public class LamportLightweight extends Thread{
     @Override
     public void run(){
 
-        try{
 
-            Log.logMessage(identifier + " port: " + myPort + " exists", "INFO",
-                    "LAMPORT", "LIGHT");
-            connectToHeavy();
+        Log.logMessage(identifier + " port: " + myPort + " exists", "INFO",
+                "LAMPORT", "LIGHT");
+        connectToHeavy();
 
-            //Base skeleton
-            while(true){
+        //Base skeleton
+        while(true){
 
-                waitHeavyweight();
-                requestCS();
+            waitHeavyweight();
+            requestCS();
 
-                for (int i=0; i<10; i++){
-                    System.out.println("Soc el " + identifier);
-                    waitOneSec();
-                }
-
-                releaseCS();
-                notifyHeavyWeight();
-
+            for (int i=0; i<10; i++){
+                System.out.println("Soc el " + identifier);
+                waitOneSec();
             }
 
-        }catch (IOException e){
-            Log.logMessage(identifier + " port: " + myPort, "ERROR", "LAMPORT", "LIGHT");
+            releaseCS();
+            notifyHeavyWeight();
+
         }
+
 
     }
 
@@ -117,6 +113,56 @@ public class LamportLightweight extends Thread{
 
     }
 
+    private class LightSocketListener extends Thread{
+
+        private Socket socket;
+        private ObjectInputStream ois;
+        private ObjectOutput oos;
+
+        public LightSocketListener(Socket socket) throws IOException {
+
+            this.socket = socket;
+            ois = new ObjectInputStream(socket.getInputStream());
+            oos = new ObjectOutputStream(socket.getOutputStream());
+            this.start();
+        }
+
+        @Override
+        public void run(){
+
+            while(true){
+
+                try {
+                    LamportMessage auxLM = (LamportMessage) ois.readObject();
+
+                    switch (auxLM.getType()){
+
+                        //request
+                        case 1:
+                            break;
+
+                        //release
+                        case 2:
+                            break;
+
+                        //acknowledge
+                        case 3:
+                            break;
+                    }
+
+
+                } catch (IOException e) {
+                    Log.logMessage("Can't read object", "ERROR", "LAMPORT", "LIGHT");
+                } catch (ClassNotFoundException e) {
+                    Log.logMessage("", "", "", "");
+                }
+
+            }
+
+        }
+
+    }
+
     //Accepts incoming connections from other lightweights
     private class LightSocketServer extends Thread{
 
@@ -147,6 +193,7 @@ public class LamportLightweight extends Thread{
 
                     Socket auxSocket = serverSocket.accept();
                     lightsConMe.add(auxSocket);
+                    //missing opening connection thread
                     Log.logMessage(identifier +". Lightweight with port: " + auxSocket.toString() + " has connected to me",
                             "INFO", "LAMPORT", "LIGHT");
 
@@ -179,10 +226,22 @@ public class LamportLightweight extends Thread{
     }
 
 
-    private void connectToHeavy() throws IOException {
-        heavySocket = new Socket(heavyAddress.getHostName(), heavyPort);
-        Log.logMessage(identifier + " connecting to heavyweight with destination port: " + heavySocket.getPort()
-                + " and exit port: " + heavySocket.getLocalPort(), "INFO", "LAMPORT", "LIGHT");
+    private void connectToHeavy(){
+
+        boolean connected = false;
+        while(!connected){
+
+            try {
+                heavySocket = new Socket(heavyAddress.getHostName(), heavyPort);
+                connected = true;
+                Log.logMessage(identifier + " connecting to heavyweight with destination port: " + heavySocket.getPort()
+                        + " and exit port: " + heavySocket.getLocalPort(), "INFO", "LAMPORT", "LIGHT");
+            } catch (IOException e) {
+                Log.logMessage(identifier + " port: " + myPort + "cant connect to heavy, retrying...", "ERROR", "LAMPORT", "LIGHT");
+            }
+
+        }
+
     }
 
 }

@@ -50,7 +50,7 @@ public class LamportHeavyweight extends Thread{
             Log.logMessage("cant create heavy socket server", "ERROR", "LAMPORT", "HEAVY");
         }
 
-        invokeLightweights();
+        //invokeLightweights();
         startLamportHeavy();
 
     }
@@ -155,7 +155,7 @@ public class LamportHeavyweight extends Thread{
 
     }
 
-
+    /*
     private void invokeLightweights(){
 
         Log.logMessage("Invoking lightweights", "INFO", "LAMPORT", "HEAVY");
@@ -176,7 +176,7 @@ public class LamportHeavyweight extends Thread{
         }
 
     }
-
+    */
 
     //HEAVYWEIGHT
 
