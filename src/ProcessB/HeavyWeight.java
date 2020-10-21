@@ -77,7 +77,8 @@ public class HeavyWeight implements Runnable{
     }
 
     private void listenHeavyweight(){
-        listenTwoClients();
+
+        if(i < 2) listenTwoClients();
     }
 
     private void sendActionToLightweight(){
