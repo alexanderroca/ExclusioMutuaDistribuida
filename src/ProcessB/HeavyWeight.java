@@ -13,11 +13,14 @@ public class HeavyWeight implements Runnable{
     private int token;
     private int PORT;
     private ServerSocket serverSocket;
+    private Socket[] process;
+    private int i = 0;
 
     public HeavyWeight(String name, int port) {
 
         this.name = name;
         PORT = port;
+        process = new Socket[NUM_LIGHTWEIGHTS];
 
         try {
 
@@ -26,6 +29,31 @@ public class HeavyWeight implements Runnable{
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void listenTwoClients(){
+
+        while(i < 2) {
+            try {
+
+                Socket petition = serverSocket.accept();
+
+                process[i] = petition;
+                i++;
+
+                ObjectInputStream ois = new ObjectInputStream(petition.getInputStream());
+
+                String message = (String) ois.readObject();
+                System.out.println(message);
+
+            } catch (SocketTimeoutException s) {
+                System.out.println("Socket timed out!");
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }   //while
     }
 
     public void heavyWeightProcess(){
@@ -49,23 +77,7 @@ public class HeavyWeight implements Runnable{
     }
 
     private void listenHeavyweight(){
-
-        try {
-
-            Socket petition = serverSocket.accept();
-
-            ObjectInputStream ois = new ObjectInputStream(petition.getInputStream());
-
-            String message = (String) ois.readObject();
-            System.out.println(message);
-
-        } catch (SocketTimeoutException s) {
-            System.out.println("Socket timed out!");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
+        listenTwoClients();
     }
 
     private void sendActionToLightweight(){

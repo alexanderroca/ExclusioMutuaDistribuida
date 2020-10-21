@@ -40,6 +40,7 @@ public class LightWeight implements Runnable{
     }
 
     private void connectToHeavyWeight(){
+
         InetAddress address;
         try {
             address = InetAddress.getLocalHost();
