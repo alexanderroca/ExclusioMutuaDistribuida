@@ -20,6 +20,7 @@ public class LamportLightweight extends Thread{
     private int id;
     private LightSocketServer lightSocketServer;
     private ArrayList<Socket> lightsConMe;
+    private ArrayList<Socket> lightsConnectedTo;
 
     //LAMPORT
     private int[] requestQueue;
@@ -35,9 +36,13 @@ public class LamportLightweight extends Thread{
         this.heavyPort = heavyPort;
         this.identifier = identifier;
         this.id = id;
+        this.lightPorts = lightPorts;
+        lightsConMe = new ArrayList<Socket>();
         requestQueue = new int[lightQuantity];
+        lightsConnectedTo = new ArrayList<Socket>();
         clock = new DirectClock(lightQuantity, id);
         lightSocketServer = new LightSocketServer(myPort);
+
         
     }
 
@@ -52,6 +57,7 @@ public class LamportLightweight extends Thread{
         Log.logMessage(identifier + " port: " + myPort + " exists", "INFO",
                 "LAMPORT", "LIGHT");
         connectToHeavy();
+        connectToLightweights();
 
         //Base skeleton
         while(true){
@@ -130,6 +136,8 @@ public class LamportLightweight extends Thread{
         @Override
         public void run(){
 
+            Log.logMessage(identifier + " started listener", "INFO", "LAMPORT", "LIGHT");
+
             while(true){
 
                 try {
@@ -193,7 +201,7 @@ public class LamportLightweight extends Thread{
 
                     Socket auxSocket = serverSocket.accept();
                     lightsConMe.add(auxSocket);
-                    //missing opening connection thread
+                    LightSocketListener auxListener = new LightSocketListener(auxSocket);
                     Log.logMessage(identifier +". Lightweight with port: " + auxSocket.toString() + " has connected to me",
                             "INFO", "LAMPORT", "LIGHT");
 
@@ -217,9 +225,32 @@ public class LamportLightweight extends Thread{
 
     private void connectToLightweights(){
 
+        boolean connected = false;
+
         for (int i = 0; i < lightQuantity; i++ ){
 
             //avoid connecting to myself
+            if(i != id){
+
+                connected = false;
+                while(!connected){
+
+                    try {
+
+                        Socket auxSocket = new Socket(myAddress.getHostName(), lightPorts[i]);
+                        lightsConnectedTo.add(auxSocket);
+                        connected = true;
+                        Log.logMessage(identifier + " connected to lightweight: " + lightPorts[i],
+                                "INFO", "LAMPORT", "LIGHT");
+
+                    }catch (IOException e){
+                        Log.logMessage(identifier + " couldn't connect to lightweight: " + i, "ERROR",
+                                "LAMPORT", "LIGHT");
+                    }
+
+                }
+
+            }
             
         }
 

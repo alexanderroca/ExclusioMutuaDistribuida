@@ -55,6 +55,7 @@ public class LamportHeavyweight extends Thread{
 
     }
 
+
     private void heavyConnectHeavy(){
 
 
