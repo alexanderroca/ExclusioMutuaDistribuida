@@ -1,3 +1,5 @@
+package Lamport;
+
 public class Log {
 
     public static final boolean logStatus = true;

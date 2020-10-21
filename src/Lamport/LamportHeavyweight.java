@@ -1,3 +1,5 @@
+package Lamport;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -163,7 +165,7 @@ public class LamportHeavyweight extends Thread{
             for(int i = 0; i < numLightweights; i++){
 
                 LamportLightweight instance = new LamportLightweight(lightPorts, numLightweights, lightPorts[i],
-                        heavyAddress, lightAddress, port, "lightLamport_" + String.valueOf(i));
+                        heavyAddress, lightAddress, port, "lightLamport_" + String.valueOf(i), i);
                 lamportLightweights.add(instance);
                 instance.start();
 

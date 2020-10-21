@@ -1,10 +1,11 @@
-import com.sun.security.ntlm.Server;
+package Lamport;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class LamportLightweight extends Thread{
 
@@ -16,11 +17,16 @@ public class LamportLightweight extends Thread{
     private int myPort;
     private Socket heavySocket;
     private String identifier;
+    private int id;
     private LightSocketServer lightSocketServer;
     private ArrayList<Socket> lightsConMe;
 
+    //LAMPORT
+    private int[] requestQueue;
+    DirectClock clock;
+
     public LamportLightweight(int[] lightPorts, int lightQuantity, int myPort, InetAddress heavyAddress,
-                              InetAddress myAddress, int heavyPort, String identifier) throws IOException {
+                              InetAddress myAddress, int heavyPort, String identifier, int id) throws IOException {
 
         this.myPort = myPort;
         this.lightQuantity = lightQuantity;
@@ -28,6 +34,9 @@ public class LamportLightweight extends Thread{
         this.myAddress = myAddress;
         this.heavyPort = heavyPort;
         this.identifier = identifier;
+        this.id = id;
+        requestQueue = new int[lightQuantity];
+        clock = new DirectClock(lightQuantity, id);
         lightSocketServer = new LightSocketServer(myPort);
         
     }
@@ -45,17 +54,66 @@ public class LamportLightweight extends Thread{
                     "LAMPORT", "LIGHT");
             connectToHeavy();
 
-            //SKELETON GOES HERE
+            //Base skeleton
             while(true){
 
+                waitHeavyweight();
+                requestCS();
+
+                for (int i=0; i<10; i++){
+                    System.out.println("Soc el " + identifier);
+                    waitOneSec();
+                }
+
+                releaseCS();
+                notifyHeavyWeight();
 
             }
 
-            //heavySocket.close();
         }catch (IOException e){
             Log.logMessage(identifier + " port: " + myPort, "ERROR", "LAMPORT", "LIGHT");
-
         }
+
+    }
+
+    private void notifyHeavyWeight(){
+
+
+    }
+
+
+    private void waitOneSec(){
+
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            Log.logMessage("error when waiting 1 second", "ERROR", "LAMPORT", "LIGHT");
+        }
+
+    }
+
+
+    private synchronized void releaseCS(){
+
+
+    }
+
+    private synchronized void requestCS(){
+
+        clock.tick();
+        requestQueue[id] = clock.getClock(id);
+        sendBroadcastRequest();
+
+    }
+
+    private synchronized void sendBroadcastRequest(){
+
+
+    }
+
+
+    private void waitHeavyweight(){
+
 
     }
 
@@ -126,6 +184,5 @@ public class LamportLightweight extends Thread{
         Log.logMessage(identifier + " connecting to heavyweight with destination port: " + heavySocket.getPort()
                 + " and exit port: " + heavySocket.getLocalPort(), "INFO", "LAMPORT", "LIGHT");
     }
-
 
 }
