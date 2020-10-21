@@ -5,12 +5,16 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.Timestamp;
+import java.util.concurrent.TimeUnit;
 
 public class LightWeight implements Runnable{
 
     private int myID;
     private String name = "";
     private int PORT;
+    private Timestamp token;
+    private Socket clientSocket;
 
     public LightWeight(String name, int port, int myID) {
 
@@ -20,7 +24,8 @@ public class LightWeight implements Runnable{
     }
 
     public void lightWeightProcess () {
-        myID = -1; //TODO: Mirar myID
+
+        connectToHeavyWeight();
 
         while(true){
             waitHeavyWeight();
@@ -34,8 +39,7 @@ public class LightWeight implements Runnable{
         }
     }
 
-    private void  waitHeavyWeight(){
-
+    private void connectToHeavyWeight(){
         InetAddress address;
         try {
             address = InetAddress.getLocalHost();
@@ -43,7 +47,7 @@ public class LightWeight implements Runnable{
             try {
 
                 int port = 3000;  //TODO: insert port from HeavyWeight
-                Socket clientSocket = new Socket(address, port);
+                clientSocket = new Socket(address, port);
                 ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
 
                 oos.writeObject("LightWeight: " + name + " connected to HeavyWeight-ProcessB");
@@ -57,12 +61,31 @@ public class LightWeight implements Runnable{
         }
     }
 
+    private void  waitHeavyWeight(){
+
+        try {
+
+            ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
+
+            token = new Timestamp(System.currentTimeMillis());
+            oos.writeObject(token);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.print("IO Exception");
+        }
+    }
+
     private void requestCS(){
 
     }
 
-    private void espera1Segon(){
-
+    private void espera1Segon() {
+        try {
+            TimeUnit.MINUTES.sleep(1);
+        } catch(InterruptedException e){
+            e.printStackTrace();
+        }
     }
 
     private void  releaseCS(){

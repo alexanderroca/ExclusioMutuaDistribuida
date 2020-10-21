@@ -49,7 +49,7 @@ public class HeavyWeight implements Runnable{
     }
 
     private void listenHeavyweight(){
-        
+
         try {
 
             Socket petition = serverSocket.accept();
