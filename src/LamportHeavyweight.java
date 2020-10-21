@@ -42,10 +42,10 @@ public class LamportHeavyweight extends Thread{
         heavyConnectHeavy();
         try {
             heavySocketServer = new HeavySocketServer(port);
-            Log.logMessage("LAMPORT: Heavy socket server created");
+            Log.logMessage("Heavy socket server created", "INFO", "LAMPORT", "HEAVY");
         } catch (IOException e) {
             e.printStackTrace();
-            Log.logMessage("ERROR: LAMPORT: Heavy, cant create heavy socket server");
+            Log.logMessage("cant create heavy socket server", "ERROR", "LAMPORT", "HEAVY");
         }
 
         invokeLightweights();
@@ -82,10 +82,12 @@ public class LamportHeavyweight extends Thread{
 
                     Socket auxSocket = serverSocket.accept();
                     lightsConMe.add(auxSocket);
-                    Log.logMessage("LAMPORT: Heavy. Lightweight with port: " + auxSocket.toString() + " has connected to me");
+                    Log.logMessage("Lightweight with port: " + auxSocket.toString() + " has connected to me",
+                            "INFO", "LAMPORT", "HEAVY");
 
                 } catch (IOException e) {
-                    Log.logMessage("ERROR: LAMPORT heavy. Error when accepting incoming light connection");
+                    Log.logMessage("Error when accepting incoming light connection",
+                            "ERROR", "LAMPORT", "HEAVY");
                     e.printStackTrace();
                 }
 
@@ -154,14 +156,21 @@ public class LamportHeavyweight extends Thread{
 
     private void invokeLightweights(){
 
-        Log.logMessage("LAMPORT: Invoking lightweights");
+        Log.logMessage("Invoking lightweights", "INFO", "LAMPORT", "HEAVY");
 
-        for(int i = 0; i < numLightweights; i++){
+        try{
 
-            LamportLightweight instance = new LamportLightweight(lightPorts, numLightweights, lightPorts[i], heavyAddress, lightAddress, port, "lamport_" + String.valueOf(i));
-            lamportLightweights.add(instance);
-            instance.start();
+            for(int i = 0; i < numLightweights; i++){
 
+                LamportLightweight instance = new LamportLightweight(lightPorts, numLightweights, lightPorts[i],
+                        heavyAddress, lightAddress, port, "lightLamport_" + String.valueOf(i));
+                lamportLightweights.add(instance);
+                instance.start();
+
+            }
+
+        }catch (IOException e){
+            Log.logMessage("Cant create lightLamport", "ERROR", "LAMPORT", "HEAVY");
         }
 
     }

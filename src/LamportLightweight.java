@@ -1,6 +1,10 @@
+import com.sun.security.ntlm.Server;
+
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class LamportLightweight extends Thread{
 
@@ -12,8 +16,11 @@ public class LamportLightweight extends Thread{
     private int myPort;
     private Socket heavySocket;
     private String identifier;
+    private LightSocketServer lightSocketServer;
+    private ArrayList<Socket> lightsConMe;
 
-    public LamportLightweight(int[] lightPorts, int lightQuantity, int myPort, InetAddress heavyAddress, InetAddress myAddress, int heavyPort, String identifier){
+    public LamportLightweight(int[] lightPorts, int lightQuantity, int myPort, InetAddress heavyAddress,
+                              InetAddress myAddress, int heavyPort, String identifier) throws IOException {
 
         this.myPort = myPort;
         this.lightQuantity = lightQuantity;
@@ -21,7 +28,7 @@ public class LamportLightweight extends Thread{
         this.myAddress = myAddress;
         this.heavyPort = heavyPort;
         this.identifier = identifier;
-        //this.start();
+        lightSocketServer = new LightSocketServer(myPort);
         
     }
 
@@ -34,19 +41,71 @@ public class LamportLightweight extends Thread{
 
         try{
 
-            Log.logMessage("LAMPORT: lightweight with port: " + myPort + " exists");
+            Log.logMessage(identifier + " port: " + myPort + " exists", "INFO",
+                    "LAMPORT", "LIGHT");
             connectToHeavy();
 
-            /*
+            //SKELETON GOES HERE
             while(true){
 
 
             }
-            */
-            heavySocket.close();
-        }catch (IOException e){
-            Log.logMessage("ERROR: LAMPORT lightweight port: " + myPort);
 
+            //heavySocket.close();
+        }catch (IOException e){
+            Log.logMessage(identifier + " port: " + myPort, "ERROR", "LAMPORT", "LIGHT");
+
+        }
+
+    }
+
+    //Accepts incoming connections from other lightweights
+    private class LightSocketServer extends Thread{
+
+        private int port;
+        private boolean serverStatus;
+        private ServerSocket serverSocket;
+
+
+        public LightSocketServer(int port) throws IOException {
+
+            this.port = port;
+            serverStatus = true;
+            serverSocket = new ServerSocket(port);
+            this.start();
+
+        }
+
+
+        @Override
+        public void run(){
+
+            Log.logMessage(identifier + " server started", "INFO",
+                    "LAMPORT", "LIGHT");
+
+            while(serverStatus){
+
+                try {
+
+                    Socket auxSocket = serverSocket.accept();
+                    lightsConMe.add(auxSocket);
+                    Log.logMessage(identifier +". Lightweight with port: " + auxSocket.toString() + " has connected to me",
+                            "INFO", "LAMPORT", "LIGHT");
+
+                } catch (IOException e) {
+                    Log.logMessage(identifier + "Error when accepting incoming light connection",
+                            "ERROR", "LAMPORT", "LIGHT");
+                    e.printStackTrace();
+                }
+
+            }
+
+        }
+
+
+        public void shutDownServer(){
+
+            serverStatus = false;
         }
 
     }
@@ -61,12 +120,12 @@ public class LamportLightweight extends Thread{
 
     }
 
+
     private void connectToHeavy() throws IOException {
         heavySocket = new Socket(heavyAddress.getHostName(), heavyPort);
-        Log.logMessage("LAMPORT: " + identifier + " connecting to heavyweight with exit port: " + heavySocket.getPort()
-                + " and destination port: " + heavySocket.getLocalPort());
+        Log.logMessage(identifier + " connecting to heavyweight with destination port: " + heavySocket.getPort()
+                + " and exit port: " + heavySocket.getLocalPort(), "INFO", "LAMPORT", "LIGHT");
     }
-
 
 
 }
