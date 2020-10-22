@@ -1,6 +1,7 @@
 package ProcessB;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -12,6 +13,7 @@ public class LightWeight implements Runnable{
 
     private int myID;
     private String name = "";
+    private String heavyProcessName;
     private int PORT;
     private Timestamp token;
     private Socket clientSocket;
@@ -51,13 +53,23 @@ public class LightWeight implements Runnable{
                 clientSocket = new Socket(address, port);
                 ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
 
-                oos.writeObject("LightWeight: " + name + " connected to HeavyWeight-ProcessB");
+                oos.writeObject(name);
+
+                ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+
+                String message = (String) ois.readObject();
+                System.out.println(message);
+
+                heavyProcessName = message;
 
             } catch (IOException e) {
                 e.printStackTrace();
                 System.err.print("IO Exception");
             }
         } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

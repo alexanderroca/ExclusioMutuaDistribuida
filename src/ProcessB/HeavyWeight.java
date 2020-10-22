@@ -1,84 +1,58 @@
 package ProcessB;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.net.ServerSocket;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 
-public class HeavyWeight implements Runnable{
+public class HeavyWeight extends Thread {
 
-    private String name;
+    protected Socket socket;
+    protected String processName;
+    protected String heavyProcessName;
     private final int NUM_LIGHTWEIGHTS = 2; //ProcessB.HeavyWeight for Ricart & Agrawala produce 2 threads
     private int token;
-    private int PORT;
-    private ServerSocket serverSocket;
-    private Socket[] process;
-    private int i = 0;
 
-    public HeavyWeight(String name, int port) {
-
-        this.name = name;
-        PORT = port;
-        process = new Socket[NUM_LIGHTWEIGHTS];
-
-        try {
-
-            serverSocket = new ServerSocket(port);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public HeavyWeight(Socket clientSocket, String processName, String heavyProcessName) {
+        this.socket = clientSocket;
+        this.processName = processName;
+        this.heavyProcessName = heavyProcessName;
     }
 
-    private void listenTwoClients(){
-
-        while(i < 2) {
-            try {
-
-                Socket petition = serverSocket.accept();
-
-                process[i] = petition;
-                i++;
-
-                ObjectInputStream ois = new ObjectInputStream(petition.getInputStream());
-
-                String message = (String) ois.readObject();
-                System.out.println(message);
-
-            } catch (SocketTimeoutException s) {
-                System.out.println("Socket timed out!");
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }   //while
+    public void run() {
+        heavyWeightProcess();
     }
 
     public void heavyWeightProcess(){
 
-        int answersfromLightweigth = 0;
-        token = -1;
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
-        while(true){
+            oos.writeObject(heavyProcessName);
 
-            while(token != 0) listenHeavyweight();  //TODO: mirar token
+            int answersfromLightweigth = 0;
+            token = -1;
 
-            for (int i=0; i<NUM_LIGHTWEIGHTS; i++)
-                sendActionToLightweight();
+            while(true){
 
-            while(answersfromLightweigth < NUM_LIGHTWEIGHTS)
-                listenLightweight();
+                while(token != 0) listenHeavyweight();  //TODO: mirar token
 
-            token = 0;
-            sendTokenToHeavyweight();
-        }   //while
+                for (int i=0; i<NUM_LIGHTWEIGHTS; i++)
+                    sendActionToLightweight();
+
+                while(answersfromLightweigth < NUM_LIGHTWEIGHTS)
+                    listenLightweight();
+
+                token = 0;
+                sendTokenToHeavyweight();
+            }   //while
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.print("IO Exception");
+        }
     }
 
     private void listenHeavyweight(){
 
-        if(i < 2) listenTwoClients();
     }
 
     private void sendActionToLightweight(){
@@ -91,10 +65,5 @@ public class HeavyWeight implements Runnable{
 
     private void sendTokenToHeavyweight(){
 
-    }
-
-    @Override
-    public void run() {
-        heavyWeightProcess();
     }
 }
