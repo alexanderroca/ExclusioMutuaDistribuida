@@ -12,4 +12,12 @@ public class Log {
 
     }
 
+    public static void logMessage(String message, String messageType, String context, String weight, String id){
+
+        if (logStatus){
+            System.out.println(messageType + ": " + context + "->" + weight + "->" + id + ": " + message);
+        }
+
+    }
+
 }

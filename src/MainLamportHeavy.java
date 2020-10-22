@@ -9,14 +9,14 @@ public class MainLamportHeavy {
     //LIGHT PORTS 4440, 4441, 4442, 5550, 5551, 5552
     public static void main (String args[]){
 
-        int numLamports = 3;
-        int baseLamportPort = 4440;
+        int numLights = 3;
+        int baseLamportHeavyPort = 4440;
 
         try {
 
-            int[] lamportLightPorts = new int[numLamports];
-            for (int i = 0; i < numLamports; i++){
-                lamportLightPorts[i] = baseLamportPort + i;
+            int[] lamportLightPorts = new int[numLights];
+            for (int i = 0; i < numLights; i++){
+                lamportLightPorts[i] = baseLamportHeavyPort + i;
             }
 
             LamportHeavyweight lamportHeavyweight = null;
@@ -31,6 +31,6 @@ public class MainLamportHeavy {
             e.printStackTrace();
         }
 
-
     }
+
 }

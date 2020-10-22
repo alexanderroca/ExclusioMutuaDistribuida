@@ -55,7 +55,7 @@ public class LamportLightweight extends Thread{
 
 
         Log.logMessage(identifier + " port: " + myPort + " exists", "INFO",
-                "LAMPORT", "LIGHT");
+                "LAMPORT", "LIGHT", identifier);
         connectToHeavy();
         connectToLightweights();
 
@@ -75,7 +75,6 @@ public class LamportLightweight extends Thread{
 
         }
 
-
     }
 
     private void notifyHeavyWeight(){
@@ -89,7 +88,7 @@ public class LamportLightweight extends Thread{
         try {
             TimeUnit.SECONDS.sleep(1);
         } catch (InterruptedException e) {
-            Log.logMessage("error when waiting 1 second", "ERROR", "LAMPORT", "LIGHT");
+            Log.logMessage("error when waiting 1 second", "ERROR", "LAMPORT", "LIGHT", identifier);
         }
 
     }
@@ -105,11 +104,34 @@ public class LamportLightweight extends Thread{
         clock.tick();
         requestQueue[id] = clock.getClock(id);
         sendBroadcastRequest();
+        waitTurn();
+
+    }
+
+    private synchronized void waitTurn(){
+
+        while(true){
+
+
+        }
 
     }
 
     private synchronized void sendBroadcastRequest(){
 
+        for (Socket socket : lightsConnectedTo){
+
+            try {
+                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+                LamportMessage message = new LamportMessage(clock.getClock(id), id, "request");
+                oos.writeObject(message);
+
+            } catch (IOException e) {
+
+            }
+
+        }
 
     }
 
@@ -136,7 +158,7 @@ public class LamportLightweight extends Thread{
         @Override
         public void run(){
 
-            Log.logMessage(identifier + " started listener", "INFO", "LAMPORT", "LIGHT");
+            Log.logMessage(identifier + " started listener", "INFO", "LAMPORT", "LIGHT", identifier);
 
             while(true){
 
@@ -147,22 +169,25 @@ public class LamportLightweight extends Thread{
 
                         //request
                         case 1:
+                            Log.logMessage("Request received", "INFO", "LAMPORT", "LIGHT", identifier);
                             break;
 
                         //release
                         case 2:
+                            Log.logMessage("Release received", "INFO", "LAMPORT", "LIGHT", identifier);
                             break;
 
                         //acknowledge
                         case 3:
+                            Log.logMessage("Acknowledge received", "INFO", "LAMPORT", "LIGHT", identifier);
                             break;
                     }
 
 
                 } catch (IOException e) {
-                    Log.logMessage("Can't read object", "ERROR", "LAMPORT", "LIGHT");
+                    Log.logMessage("Can't read object, IO exception", "ERROR", "LAMPORT", "LIGHT", identifier);
                 } catch (ClassNotFoundException e) {
-                    Log.logMessage("", "", "", "");
+                    Log.logMessage("Can't read object, class not found exception", "ERROR", "LAMPORT", "LIGHT", identifier);
                 }
 
             }
@@ -193,7 +218,7 @@ public class LamportLightweight extends Thread{
         public void run(){
 
             Log.logMessage(identifier + " server started", "INFO",
-                    "LAMPORT", "LIGHT");
+                    "LAMPORT", "LIGHT", identifier);
 
             while(serverStatus){
 
@@ -203,11 +228,11 @@ public class LamportLightweight extends Thread{
                     lightsConMe.add(auxSocket);
                     LightSocketListener auxListener = new LightSocketListener(auxSocket);
                     Log.logMessage(identifier +". Lightweight with port: " + auxSocket.toString() + " has connected to me",
-                            "INFO", "LAMPORT", "LIGHT");
+                            "INFO", "LAMPORT", "LIGHT", identifier);
 
                 } catch (IOException e) {
                     Log.logMessage(identifier + "Error when accepting incoming light connection",
-                            "ERROR", "LAMPORT", "LIGHT");
+                            "ERROR", "LAMPORT", "LIGHT", identifier);
                     e.printStackTrace();
                 }
 
@@ -241,11 +266,11 @@ public class LamportLightweight extends Thread{
                         lightsConnectedTo.add(auxSocket);
                         connected = true;
                         Log.logMessage(identifier + " connected to lightweight: " + lightPorts[i],
-                                "INFO", "LAMPORT", "LIGHT");
+                                "INFO", "LAMPORT", "LIGHT", identifier);
 
                     }catch (IOException e){
                         Log.logMessage(identifier + " couldn't connect to lightweight: " + i, "ERROR",
-                                "LAMPORT", "LIGHT");
+                                "LAMPORT", "LIGHT", identifier);
                     }
 
                 }
@@ -266,9 +291,11 @@ public class LamportLightweight extends Thread{
                 heavySocket = new Socket(heavyAddress.getHostName(), heavyPort);
                 connected = true;
                 Log.logMessage(identifier + " connecting to heavyweight with destination port: " + heavySocket.getPort()
-                        + " and exit port: " + heavySocket.getLocalPort(), "INFO", "LAMPORT", "LIGHT");
+                        + " and exit port: " + heavySocket.getLocalPort(), "INFO", "LAMPORT",
+                        "LIGHT", identifier);
             } catch (IOException e) {
-                Log.logMessage(identifier + " port: " + myPort + "cant connect to heavy, retrying...", "ERROR", "LAMPORT", "LIGHT");
+                Log.logMessage(identifier + " port: " + myPort + "cant connect to heavy, retrying...",
+                        "ERROR", "LAMPORT", "LIGHT", identifier);
             }
 
         }

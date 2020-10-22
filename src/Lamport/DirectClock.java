@@ -23,5 +23,10 @@ public class DirectClock {
         clock[myId]++;
     }
 
+    public void catchUp(int idSender, int clockSender){
+
+
+    }
+
 
 }

@@ -123,6 +123,10 @@ public class LamportHeavyweight extends Thread{
         public void run(){
 
             //listen socket input
+            while(true){
+
+
+            }
 
         }
 
@@ -156,6 +160,7 @@ public class LamportHeavyweight extends Thread{
 
     }
 
+    //Previous code, thread invocation
     /*
     private void invokeLightweights(){
 
