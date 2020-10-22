@@ -2,7 +2,6 @@ package Lamport;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -25,8 +24,11 @@ public class LamportHeavyweight extends Thread{
     private ArrayList<Socket> lightsConMe;
     private ArrayList<HeavyListensLight> toLightListeners;
 
+    private volatile int lightsConnected;
 
     public LamportHeavyweight(int numLightweights, boolean debug, int port, int[] lightPorts, InetAddress heavyAddress, InetAddress lightAddress){
+
+        lightsConnected = 0;
 
         this.numLightweights = numLightweights;
         this.debug = debug;
@@ -80,7 +82,7 @@ public class LamportHeavyweight extends Thread{
         }
 
         @Override
-        public void run(){
+        public synchronized void run(){
 
             while(serverStatus){
 
@@ -90,7 +92,8 @@ public class LamportHeavyweight extends Thread{
                     HeavyListensLight auxHeavyListensLight = new HeavyListensLight(auxSocket);
                     toLightListeners.add(auxHeavyListensLight);
                     lightsConMe.add(auxSocket);
-                    Log.logMessage("Lightweight with port: " + auxSocket.toString() + " has connected to me",
+                    lightsConnected++;
+                    Log.logMessage("Lightweight with port: " + auxSocket.toString() + " has connected to me, num connected: " + lightsConMe.size(),
                             "INFO", "LAMPORT", "HEAVY");
 
                 } catch (IOException e) {
@@ -158,11 +161,18 @@ public class LamportHeavyweight extends Thread{
         }
 
     }
+    public synchronized void waitForLightsToConnect(){
+         while (lightsConnected < numLightweights);
+
+
+    }
 
 
     public synchronized void startLamportHeavy(){
 
         while(true){
+
+            waitForLightsToConnect();
 
             //Waiting for token between heavyweights
             while(!token){
@@ -218,7 +228,7 @@ public class LamportHeavyweight extends Thread{
 
     private void listenHeavyweight(){
 
-        token = debug ? false : true;
+        token = true;
 
     }
 
@@ -244,19 +254,22 @@ public class LamportHeavyweight extends Thread{
     private void sendActionToLightweight(Socket lightConnSocket, int id){
 
         boolean send = false;
+        while(!send){
 
-        try {
-            while(!send){
-                ObjectOutputStream oos = new ObjectOutputStream(lightConnSocket.getOutputStream());
-                LamportHeavyMessage auxLHM = new LamportHeavyMessage(true);
-                oos.writeObject(auxLHM);
-                send = true;
+            try {
+
+                    ObjectOutputStream oos = new ObjectOutputStream(lightConnSocket.getOutputStream());
+                    LamportLightHeavyMessage auxLHM = new LamportLightHeavyMessage(true);
+                    oos.writeObject(auxLHM);
+                    send = true;
+                    Log.logMessage("gate opening message sent to " + id , "INFO",
+                            "LAMPORT", "HEAVY");
+
+            } catch (IOException e) {
+                Log.logMessage("couldn't send message to lightweight: " + id, "ERROR", "LAMPORT",
+                        "HEAVY");
             }
 
-
-        } catch (IOException e) {
-            Log.logMessage("couldn't send message to lightweight: " + id, "ERROR", "LAMPORT",
-                    "HEAVY");
         }
 
     }

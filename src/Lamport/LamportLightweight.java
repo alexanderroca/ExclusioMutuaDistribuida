@@ -22,6 +22,7 @@ public class LamportLightweight extends Thread{
     private ArrayList<Socket> lightsConMe;
     private ArrayList<Socket> lightsConnectedTo;
     private boolean opened;
+    private LightListensHeavy lightListensHeavy;
 
     //LAMPORT
     private int[] requestQueue;
@@ -307,6 +308,7 @@ public class LamportLightweight extends Thread{
                 connected = true;
 
                 //TODO missing generation of thread to listen the heavyweight
+                lightListensHeavy = new LightListensHeavy(heavySocket);
 
                 Log.logMessage(identifier + " connected to heavyweight with destination port: " + heavySocket.getPort()
                         + " and exit port: " + heavySocket.getLocalPort(), "INFO", "LAMPORT",
@@ -321,5 +323,52 @@ public class LamportLightweight extends Thread{
     }
 
     //TODO Missing lightListens heavy
+
+    private class LightListensHeavy extends Thread{
+
+        private Socket socket;
+        private ObjectInputStream ois;
+
+        public LightListensHeavy(Socket socket){
+
+            this.socket = socket;
+            this.start();
+
+        }
+
+        @Override
+        public synchronized void run(){
+
+            try {
+                ois = new ObjectInputStream(socket.getInputStream());
+
+                while (true){
+
+                    try {
+
+                        LamportLightHeavyMessage auxLLHM = (LamportLightHeavyMessage) ois.readObject();
+                        opened = auxLLHM.isEnabled();
+                        Log.logMessage("Gate opened!", "INFO", "LAMPORT", "LIGHT", identifier);
+
+                    } catch (IOException e) {
+                        Log.logMessage("cant read incoming heavy message, IO exception", "ERROR",
+                                "LAMPORT", "LIGHT", identifier);
+                    } catch (ClassNotFoundException e) {
+                        Log.logMessage("cant read incoming heavy message, class not found exception", "ERROR",
+                                "LAMPORT", "LIGHT", identifier);
+                    }
+
+                }
+
+            } catch (IOException e) {
+                Log.logMessage("couldn't create Object input stream for listens heavy", "ERROR",
+                        "LAMPORT", "LIGHT", identifier);
+            }
+
+
+        }
+
+
+    }
 
 }
