@@ -1,6 +1,9 @@
 package Lamport;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,7 +15,6 @@ public class LamportHeavyweight extends Thread{
     private int numLightweights;
     private int answersFromLightweight;
     private boolean debug = true;
-    private ArrayList<LamportLightweight> lamportLightweights;
     private int port;
     private int[] lightPorts;
     private HeavySocketServer heavySocketServer;
@@ -21,24 +23,25 @@ public class LamportHeavyweight extends Thread{
 
 
     private ArrayList<Socket> lightsConMe;
+    private ArrayList<HeavyListensLight> toLightListeners;
 
 
     public LamportHeavyweight(int numLightweights, boolean debug, int port, int[] lightPorts, InetAddress heavyAddress, InetAddress lightAddress){
 
         this.numLightweights = numLightweights;
         this.debug = debug;
-        lamportLightweights = new ArrayList<>();
         this.port = port;
         this.lightPorts = lightPorts;
         this.heavyAddress = heavyAddress;
         this.lightAddress = lightAddress;
         lightsConMe = new ArrayList<>();
+        toLightListeners = new ArrayList<>();
 
     }
 
 
     @Override
-    public void run(){
+    public synchronized void run(){
 
         //connect to the other heavy process
         heavyConnectHeavy();
@@ -84,14 +87,17 @@ public class LamportHeavyweight extends Thread{
                 try {
 
                     Socket auxSocket = serverSocket.accept();
+                    HeavyListensLight auxHeavyListensLight = new HeavyListensLight(auxSocket);
+                    toLightListeners.add(auxHeavyListensLight);
                     lightsConMe.add(auxSocket);
                     Log.logMessage("Lightweight with port: " + auxSocket.toString() + " has connected to me",
                             "INFO", "LAMPORT", "HEAVY");
 
                 } catch (IOException e) {
+
                     Log.logMessage("Error when accepting incoming light connection",
                             "ERROR", "LAMPORT", "HEAVY");
-                    e.printStackTrace();
+
                 }
 
             }
@@ -112,20 +118,41 @@ public class LamportHeavyweight extends Thread{
     private class HeavyListensLight extends Thread{
 
         private Socket socket;
+        private ObjectInputStream ois;
 
         public HeavyListensLight(Socket socket){
 
             this.socket = socket;
+            this.start();
 
         }
 
         @Override
         public void run(){
 
-            //listen socket input
-            while(true){
+            try {
 
+                ois = new ObjectInputStream(socket.getInputStream());
 
+                //listen socket input
+                while(true){
+
+                    try {
+                        LamportMessage auxLM = (LamportMessage) ois.readObject();
+                        Log.logMessage("message from: " + auxLM.getId() + " received", "INFO", "LAMPORT", "HEAVY");
+                    } catch (IOException e) {
+                        Log.logMessage("error reading object from lightweight, IO exception", "ERROR", "LAMPORT",
+                                "HEAVY");
+                    } catch (ClassNotFoundException e) {
+                        Log.logMessage("error reading object class not found exception",
+                                "ERROR", "LAMPORT", "HEAVY");
+                    }
+
+                }
+
+            } catch (IOException e) {
+                Log.logMessage("error when gathering input stream from socket connection from light",
+                        "ERROR", "LAMPORT", "HEAVY");
             }
 
         }
@@ -133,7 +160,7 @@ public class LamportHeavyweight extends Thread{
     }
 
 
-    public void startLamportHeavy(){
+    public synchronized void startLamportHeavy(){
 
         while(true){
 
@@ -143,8 +170,11 @@ public class LamportHeavyweight extends Thread{
             }
 
             //green light lightweights
-            for (LamportLightweight lightweight : lamportLightweights){
-                sendActionToLightweight(lightweight);
+            for (int i = 0; i < lightsConMe.size(); i++){
+
+                Socket auxSocketLight = lightsConMe.get(i);
+                sendActionToLightweight(auxSocketLight, i);
+
             }
 
             //Waiting for all lightweights to finish
@@ -210,9 +240,24 @@ public class LamportHeavyweight extends Thread{
 
     }
 
+    //Green lights lightweights
+    private void sendActionToLightweight(Socket lightConnSocket, int id){
 
-    private void sendActionToLightweight(LamportLightweight lightweight){
+        boolean send = false;
 
+        try {
+            while(!send){
+                ObjectOutputStream oos = new ObjectOutputStream(lightConnSocket.getOutputStream());
+                LamportHeavyMessage auxLHM = new LamportHeavyMessage(true);
+                oos.writeObject(auxLHM);
+                send = true;
+            }
+
+
+        } catch (IOException e) {
+            Log.logMessage("couldn't send message to lightweight: " + id, "ERROR", "LAMPORT",
+                    "HEAVY");
+        }
 
     }
 

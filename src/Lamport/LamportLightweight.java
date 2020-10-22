@@ -21,6 +21,7 @@ public class LamportLightweight extends Thread{
     private LightSocketServer lightSocketServer;
     private ArrayList<Socket> lightsConMe;
     private ArrayList<Socket> lightsConnectedTo;
+    private boolean opened;
 
     //LAMPORT
     private int[] requestQueue;
@@ -37,6 +38,7 @@ public class LamportLightweight extends Thread{
         this.identifier = identifier;
         this.id = id;
         this.lightPorts = lightPorts;
+        opened = false;
         lightsConMe = new ArrayList<Socket>();
         requestQueue = new int[lightQuantity];
         lightsConnectedTo = new ArrayList<Socket>();
@@ -51,7 +53,7 @@ public class LamportLightweight extends Thread{
     }
 
     @Override
-    public void run(){
+    public synchronized void run(){
 
 
         Log.logMessage(identifier + " port: " + myPort + " exists", "INFO",
@@ -77,7 +79,7 @@ public class LamportLightweight extends Thread{
 
     }
 
-    private void notifyHeavyWeight(){
+    private synchronized void notifyHeavyWeight(){
 
 
     }
@@ -138,6 +140,7 @@ public class LamportLightweight extends Thread{
 
     private void waitHeavyweight(){
 
+        while (!opened);
 
     }
 
@@ -156,7 +159,7 @@ public class LamportLightweight extends Thread{
         }
 
         @Override
-        public void run(){
+        public synchronized void run(){
 
             Log.logMessage(identifier + " started listener", "INFO", "LAMPORT", "LIGHT", identifier);
 
@@ -227,7 +230,7 @@ public class LamportLightweight extends Thread{
 
 
         @Override
-        public void run(){
+        public synchronized void run(){
 
             Log.logMessage(identifier + " server started", "INFO",
                     "LAMPORT", "LIGHT", identifier);
@@ -260,7 +263,7 @@ public class LamportLightweight extends Thread{
 
     }
 
-    private void connectToLightweights(){
+    private synchronized void connectToLightweights(){
 
         boolean connected = false;
 
@@ -294,7 +297,7 @@ public class LamportLightweight extends Thread{
     }
 
 
-    private void connectToHeavy(){
+    private synchronized void connectToHeavy(){
 
         boolean connected = false;
         while(!connected){
@@ -302,7 +305,10 @@ public class LamportLightweight extends Thread{
             try {
                 heavySocket = new Socket(heavyAddress.getHostName(), heavyPort);
                 connected = true;
-                Log.logMessage(identifier + " connecting to heavyweight with destination port: " + heavySocket.getPort()
+
+                //TODO missing generation of thread to listen the heavyweight
+
+                Log.logMessage(identifier + " connected to heavyweight with destination port: " + heavySocket.getPort()
                         + " and exit port: " + heavySocket.getLocalPort(), "INFO", "LAMPORT",
                         "LIGHT", identifier);
             } catch (IOException e) {
@@ -313,5 +319,7 @@ public class LamportLightweight extends Thread{
         }
 
     }
+
+    //TODO Missing lightListens heavy
 
 }

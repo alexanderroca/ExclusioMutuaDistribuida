@@ -6,7 +6,7 @@ public class LamportMessage implements Serializable {
 
     private final int clock;
     private final int id;
-    private final int type; // 1:request    2:release   3:acknowledge
+    private final int type; // 1:request    2:release   3:acknowledge   -1:heavyeight
 
 
     public LamportMessage(int clock, int id, String type){
