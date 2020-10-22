@@ -36,7 +36,7 @@ public class LamportMessage implements Serializable {
     }
 
 
-    public int getClock() {
+    public int getTimestamp() {
         return clock;
     }
 

@@ -169,16 +169,28 @@ public class LamportLightweight extends Thread{
 
                         //request
                         case 1:
+
+                            //add request to queue
+                            requestQueue[auxLM.getId()] = auxLM.getTimestamp();
+
+                            //update timestamp of sender
+                            clock.catchUp(auxLM.getId(), auxLM.getTimestamp());
                             Log.logMessage("Request received", "INFO", "LAMPORT", "LIGHT", identifier);
                             break;
 
                         //release
                         case 2:
+
+                            //update timestamp of sender
+                            clock.catchUp(auxLM.getId(), auxLM.getTimestamp());
                             Log.logMessage("Release received", "INFO", "LAMPORT", "LIGHT", identifier);
                             break;
 
                         //acknowledge
                         case 3:
+
+                            //update timestamp of sender
+                            clock.catchUp(auxLM.getId(), auxLM.getTimestamp());
                             Log.logMessage("Acknowledge received", "INFO", "LAMPORT", "LIGHT", identifier);
                             break;
                     }

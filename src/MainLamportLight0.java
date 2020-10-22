@@ -5,14 +5,14 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public class MainLamportLight3 {
+public class MainLamportLight0 {
 
     public static void main(String[] args) {
         int numLights = 3;
         int heavyPort = 3330;
         int baseLamportPort = 4440;
 
-        int idLight = 2;
+        int idLight = 0;
 
         int[] lamportLightPorts = new int[numLights];
 
@@ -35,4 +35,5 @@ public class MainLamportLight3 {
 
 
     }
+
 }

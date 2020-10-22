@@ -12,7 +12,7 @@ public class MainLamportLight2 {
         int heavyPort = 3330;
         int baseLamportPort = 4440;
 
-        int idLight = 1;
+        int idLight = 2;
 
         int[] lamportLightPorts = new int[numLights];
 

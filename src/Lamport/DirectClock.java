@@ -25,6 +25,8 @@ public class DirectClock {
 
     public void catchUp(int idSender, int clockSender){
 
+        clock[idSender] = clockSender > clock[idSender] ? clockSender : clock[idSender];
+        clock[myId] = (clock[myId] > clockSender ? clock[myId] : clockSender) + 1;
 
     }
 
