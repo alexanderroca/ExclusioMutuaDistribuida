@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class LamportHeavyweight extends Thread{
 
@@ -20,7 +21,7 @@ public class LamportHeavyweight extends Thread{
     private InetAddress heavyAddress;
     private InetAddress lightAddress;
 
-
+    private ArrayList<ObjectOutputStream> lightOosList;
     private ArrayList<Socket> lightsConMe;
     private ArrayList<HeavyListensLight> toLightListeners;
 
@@ -36,6 +37,7 @@ public class LamportHeavyweight extends Thread{
         this.lightPorts = lightPorts;
         this.heavyAddress = heavyAddress;
         this.lightAddress = lightAddress;
+        lightOosList = new ArrayList<>();
         lightsConMe = new ArrayList<>();
         toLightListeners = new ArrayList<>();
 
@@ -92,6 +94,7 @@ public class LamportHeavyweight extends Thread{
                     HeavyListensLight auxHeavyListensLight = new HeavyListensLight(auxSocket);
                     toLightListeners.add(auxHeavyListensLight);
                     lightsConMe.add(auxSocket);
+                    lightOosList.add(new ObjectOutputStream(auxSocket.getOutputStream()));
                     lightsConnected++;
                     Log.logMessage("Lightweight with port: " + auxSocket.toString() + " has connected to me, num connected: " + lightsConMe.size(),
                             "INFO", "LAMPORT", "HEAVY");
@@ -141,8 +144,9 @@ public class LamportHeavyweight extends Thread{
                 while(true){
 
                     try {
-                        LamportMessage auxLM = (LamportMessage) ois.readObject();
-                        Log.logMessage("message from: " + auxLM.getId() + " received", "INFO", "LAMPORT", "HEAVY");
+                        LamportLightHeavyMessage auxLM = (LamportLightHeavyMessage) ois.readObject();
+                        Log.logMessage("message from light received", "INFO", "LAMPORT", "HEAVY");
+                        answersFromLightweight++;
                     } catch (IOException e) {
                         Log.logMessage("error reading object from lightweight, IO exception", "ERROR", "LAMPORT",
                                 "HEAVY");
@@ -168,12 +172,15 @@ public class LamportHeavyweight extends Thread{
     }
 
 
+    //SKELETON
     public synchronized void startLamportHeavy(){
+
+        waitForLightsToConnect();
 
         while(true){
 
-            waitForLightsToConnect();
 
+            System.out.println("ITERATION");
             //Waiting for token between heavyweights
             while(!token){
                 listenHeavyweight();
@@ -191,9 +198,10 @@ public class LamportHeavyweight extends Thread{
             while(answersFromLightweight < numLightweights){
                 listenLightweight();
             }
+            answersFromLightweight = 0;
 
             //Give access token to other heavyweight
-            token = debug ? false : true;
+            token = true;
             sendTokenToHeavyweight();
 
         }
@@ -246,6 +254,11 @@ public class LamportHeavyweight extends Thread{
 
     private void listenLightweight(){
 
+        try {
+            TimeUnit.MILLISECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
 
     }
@@ -257,12 +270,12 @@ public class LamportHeavyweight extends Thread{
         while(!send){
 
             try {
-
-                    ObjectOutputStream oos = new ObjectOutputStream(lightConnSocket.getOutputStream());
+                    //TODO change creation of outputstream for array of outputstreams
+                    //ObjectOutputStream oos = new ObjectOutputStream(lightConnSocket.getOutputStream());
                     LamportLightHeavyMessage auxLHM = new LamportLightHeavyMessage(true);
-                    oos.writeObject(auxLHM);
+                    lightOosList.get(id).writeObject(auxLHM);
                     send = true;
-                    Log.logMessage("gate opening message sent to " + id , "INFO",
+                    Log.logMessage("gate opening message sent",  "INFO",
                             "LAMPORT", "HEAVY");
 
             } catch (IOException e) {

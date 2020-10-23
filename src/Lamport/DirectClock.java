@@ -2,8 +2,8 @@ package Lamport;
 
 public class DirectClock {
 
-    public int[] clock;
-    int myId;
+    public volatile int[] clock;
+    private int myId;
 
     public DirectClock(int numProc, int id){
         myId = id;
@@ -15,18 +15,17 @@ public class DirectClock {
 
     }
 
-    public int getClock(int i){
+    public synchronized int getClock(int i){
         return clock[i];
     }
 
-    public void tick(){
+    public synchronized void tick(){
         clock[myId]++;
     }
 
-    public void catchUp(int idSender, int clockSender){
-
-        clock[idSender] = clockSender > clock[idSender] ? clockSender : clock[idSender];
-        clock[myId] = (clock[myId] > clockSender ? clock[myId] : clockSender) + 1;
+    public synchronized void catchUp(int idSender, int clockSender){
+        clock[idSender] = Math.max(clockSender, clock[idSender]);
+        clock[myId] = (Math.max(clock[myId], clockSender)) + 1;
 
     }
 

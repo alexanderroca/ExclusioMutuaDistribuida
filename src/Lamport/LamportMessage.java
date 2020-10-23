@@ -16,6 +16,10 @@ public class LamportMessage implements Serializable {
 
         switch (type){
 
+            case "handshake":
+                this.type = 0;
+                break;
+
             case "request":
                 this.type = 1;
                 break;

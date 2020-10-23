@@ -22,7 +22,6 @@ public class MainLamportLight0 {
 
         try{
 
-
             LamportLightweight instance = new LamportLightweight(lamportLightPorts, numLights, lamportLightPorts[idLight],
                     InetAddress.getLocalHost(), InetAddress.getLocalHost(), heavyPort, "lightLamport_" + String.valueOf(idLight), idLight);
             instance.start();
@@ -32,7 +31,6 @@ public class MainLamportLight0 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
     }
 
