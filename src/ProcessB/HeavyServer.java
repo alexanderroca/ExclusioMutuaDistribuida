@@ -9,7 +9,6 @@ import java.net.SocketTimeoutException;
 public class HeavyServer implements Runnable{
 
     private String name;
-    private final int NUM_LIGHTWEIGHTS = 2; //ProcessB.HeavyWeight for Ricart & Agrawala produce 2 threads
     private int token;
     private int PORT;
     private ServerSocket serverSocket;

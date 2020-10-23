@@ -7,7 +7,11 @@ public class Main {
 
         if(args[0].equals("ProcessB")) {
             HeavyServer heavyWeightB = new HeavyServer(args[0], 3000);
-            heavyWeightB.run();
+            LightWeight loopback = new LightWeight(args[0], 3000, 0);
+            Thread server = new Thread(heavyWeightB);
+            Thread client = new Thread(loopback);
+            server.start();
+            client.start();
         }   //if
         else if (args[0].equals("ProcessLWB1")){
             LightWeight lwb1 = new LightWeight(args[0], 3001, 1);
