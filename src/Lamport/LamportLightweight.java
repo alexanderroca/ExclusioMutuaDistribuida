@@ -9,20 +9,19 @@ import java.util.concurrent.TimeUnit;
 
 public class LamportLightweight extends Thread{
 
-    private int[] lightPorts;
-    private int heavyPort;
-    private InetAddress heavyAddress;
-    private InetAddress myAddress;
-    private int lightQuantity;
-    private int myPort;
+    private final int[] lightPorts;
+    private final int heavyPort;
+    private final InetAddress heavyAddress;
+    private final InetAddress myAddress;
+    private final int lightQuantity;
+    private final int myPort;
     private Socket heavySocket;
-    private String identifier;
-    private int id;
-    private LightSocketServer lightSocketServer;
-    private ArrayList<Socket> lightsConnectedTo;
+    private final String identifier;
+    private final int id;
+    private ArrayList<Socket> lightsConnectedTo; // added but not used
     private volatile boolean opened;
+    private final LightSocketServer lightSocketServer;
     private LightListensHeavy lightListensHeavy;
-    private ObjectOutputStream[] oosLightConMe;
     private ObjectOutputStream[] oosConnectedTo;
     private ObjectOutputStream heavyOos;
     private volatile int connectionCount;
@@ -50,7 +49,6 @@ public class LamportLightweight extends Thread{
             requestQueue[i] = 0;
         }
         lightsConnectedTo = new ArrayList<Socket>(lightQuantity);
-        oosLightConMe = new ObjectOutputStream[lightQuantity];
         oosConnectedTo = new ObjectOutputStream[lightQuantity];
         clock = new DirectClock(lightQuantity, id);
         lightSocketServer = new LightSocketServer(myPort);
@@ -84,7 +82,7 @@ public class LamportLightweight extends Thread{
                 System.out.println("Soc el: " + identifier);
                 waitOneSec();
             }
-
+            System.out.println("\nFI\n");
             releaseCS();
 
             notifyHeavyWeight();
@@ -94,10 +92,7 @@ public class LamportLightweight extends Thread{
     }
 
     private synchronized boolean allConnected(){
-        if(connectionCount == (lightQuantity * 2) - 2)
-            return true;
-
-        return false;
+        return connectionCount == (lightQuantity * 2) - 2;
     }
 
     private synchronized void notifyHeavyWeight(){
@@ -145,6 +140,7 @@ public class LamportLightweight extends Thread{
     }
 
     private synchronized boolean myTurn(){
+
         try {
             wait(10);
             printClock();
@@ -258,7 +254,7 @@ public class LamportLightweight extends Thread{
 
         private Socket socket;
         private ObjectInputStream ois;
-        private int listenerId;
+        //private int listenerId;
 
         public LightSocketListener(Socket socket) throws IOException {
 
@@ -289,7 +285,7 @@ public class LamportLightweight extends Thread{
                         case 0:
                             Log.logMessage("handshake received", "INFO", "LAMPORT",
                                     "LIGHT", identifier);
-                            listenerId = auxLM.getId();
+                            //listenerId = auxLM.getId();
                             //oosLightConMe[listenerId] = new ObjectOutputStream(socket.getOutputStream());
                             break;
 
@@ -317,8 +313,6 @@ public class LamportLightweight extends Thread{
                             requestQueue[auxLM.getId()] = -1;
                             Log.logMessage("Release received from: " + auxLM.getId(), "INFO", "LAMPORT", "LIGHT", identifier);
 
-                            //send acknowledge
-                            //sendAcknowledge(auxLM.getId());
                             break;
 
                         //acknowledge
@@ -353,7 +347,7 @@ public class LamportLightweight extends Thread{
         private boolean serverStatus;
         private ServerSocket serverSocket;
 
-
+        //TODO NOT USED
         public LightSocketServer(int port) throws IOException {
 
             this.port = port;
@@ -413,23 +407,19 @@ public class LamportLightweight extends Thread{
 
                 connected = false;
                 while(!connected){
+
                     try {
                         //TODO HANDSHAKE MIGHT NOT WORK MIERDA!
                         Socket auxSocket = new Socket(myAddress.getHostName(), lightPorts[i]);
                         lightsConnectedTo.add(auxSocket);
                         ObjectOutputStream auxOos = new ObjectOutputStream(auxSocket.getOutputStream());
                         auxOos.writeObject(new LamportMessage(clock.getClock(id), id, "handshake"));
-                        //oosConnectedTo[i].writeObject(new LamportMessage(clock.getClock(id), id, "handshake"));
                         ObjectInputStream auxOis = new ObjectInputStream(auxSocket.getInputStream());
                         LamportMessage auxLM = (LamportMessage) auxOis.readObject();
 
                         oosConnectedTo[auxLM.getId()] = auxOos;
-                        System.out.println("OOS ASSIGNATED");
-
-                        //oosConnectedTo[i] = new ObjectOutputStream();
                         connectionCount++;
                         connected = true;
-                        //
                         Log.logMessage(identifier + " connected to lightweight: " + lightPorts[i],
                                 "INFO", "LAMPORT", "LIGHT", identifier);
 
@@ -536,6 +526,7 @@ public class LamportLightweight extends Thread{
 
     }
 
+    //Used for debugging
     private synchronized void printQueue(){
 
         System.out.println("QUEUE: " + requestQueue[0] + " - " + requestQueue[1] + " - " + requestQueue[2]);
