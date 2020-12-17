@@ -396,6 +396,7 @@ public class LamportLightweight extends Thread{
 
     }
 
+    //Connects to other lightweights
     private synchronized void connectToLightweights(){
 
         boolean connected = false;
@@ -409,7 +410,7 @@ public class LamportLightweight extends Thread{
                 while(!connected){
 
                     try {
-                        //TODO HANDSHAKE MIGHT NOT WORK MIERDA!
+
                         Socket auxSocket = new Socket(myAddress.getHostName(), lightPorts[i]);
                         lightsConnectedTo.add(auxSocket);
                         ObjectOutputStream auxOos = new ObjectOutputStream(auxSocket.getOutputStream());
@@ -436,7 +437,7 @@ public class LamportLightweight extends Thread{
 
     }
 
-
+    //Connects to its heavy
     private synchronized void connectToHeavy(){
 
         boolean connected = false;

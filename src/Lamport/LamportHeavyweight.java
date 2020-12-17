@@ -208,30 +208,6 @@ public class LamportHeavyweight extends Thread{
 
     }
 
-    //Previous code, thread invocation
-    /*
-    private void invokeLightweights(){
-
-        Log.logMessage("Invoking lightweights", "INFO", "LAMPORT", "HEAVY");
-
-        try{
-
-            for(int i = 0; i < numLightweights; i++){
-
-                LamportLightweight instance = new LamportLightweight(lightPorts, numLightweights, lightPorts[i],
-                        heavyAddress, lightAddress, port, "lightLamport_" + String.valueOf(i), i);
-                lamportLightweights.add(instance);
-                instance.start();
-
-            }
-
-        }catch (IOException e){
-            Log.logMessage("Cant create lightLamport", "ERROR", "LAMPORT", "HEAVY");
-        }
-
-    }
-    */
-
     //HEAVYWEIGHT
 
     private void listenHeavyweight(){
