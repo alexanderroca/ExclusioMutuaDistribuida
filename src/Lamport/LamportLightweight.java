@@ -111,7 +111,6 @@ public class LamportLightweight extends Thread{
     private void waitOneSec(){
 
         try {
-            //TimeUnit.MILLISECONDS.sleep(100);
             TimeUnit.SECONDS.sleep(1);
         } catch (InterruptedException e) {
             Log.logMessage("error when waiting 1 second", "ERROR", "LAMPORT", "LIGHT", identifier);
@@ -177,6 +176,7 @@ public class LamportLightweight extends Thread{
     }
 
     private synchronized void sendBroadCastRelease(){
+
         clock.tick();
         for (int i = 0; i < lightQuantity; i++){
 
